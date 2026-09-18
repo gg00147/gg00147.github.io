@@ -1,2 +1,1 @@
-# gg00147.github.io
-royal
+Payouts & Bonuses

@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Payouts &amp; Bonuses</title>
+  <style>
+    :root { --felt: #063c32; --felt-dark: #022820; --gold: #f4bc52; --gold-light: #ffe1a0; --ink: #111915; --paper: #fffdf8; --red: #c84444; --green: #229464; }
+    * { box-sizing: border-box; }
+    body { min-width: 320px; min-height: 100vh; margin: 0; background: radial-gradient(ellipse at 50% 10%, #116650 0%, var(--felt) 42%, var(--felt-dark) 100%); color: var(--paper); font-family: Arial, Helvetica, sans-serif; }
+    .shell { width: min(940px, calc(100% - 40px)); min-height: 100vh; margin: 0 auto; padding: 32px 0 42px; display: flex; flex-direction: column; }
+    .topbar { position: relative; display: flex; justify-content: center; align-items: center; border-bottom: 1px solid #ffffff38; padding-bottom: 22px; }
+    .brand { position: absolute; left: 0; display: flex; align-items: center; gap: 13px; font-size: 15px; font-weight: 700; letter-spacing: 1.1px; }
+    .brand-mark { width: 36px; height: 36px; border: 2px solid var(--gold); color: var(--gold); display: grid; place-items: center; transform: rotate(45deg); font-size: 17px; }
+    .brand-mark span { transform: rotate(-45deg); }
+    .mode-switch { display: flex; border: 1px solid #ffffff66; }
+    .mode { border: 0; padding: 10px 13px; background: transparent; color: #d4e2dc; font-size: 11px; font-weight: 800; letter-spacing: .5px; }
+    .mode.active { background: var(--gold); color: var(--ink); }
+    .category-switch { width: 100%; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; padding: 16px 0 2px; }
+    .category { border: 1px solid #ffffff66; padding: 8px 11px; background: transparent; color: #d4e2dc; font-size: 10px; font-weight: 800; letter-spacing: .6px; }
+    .category.active { border-color: var(--gold); background: #ffffff18; color: var(--gold-light); }
+    .score { position: absolute; right: 0; text-align: right; }
+    .score small { display: block; color: #c4d5cd; font-size: 10px; font-weight: 700; letter-spacing: 1px; }
+    .score strong { color: var(--gold-light); font-size: 25px; line-height: 1.2; }
+    .stage { flex: 1; display: grid; place-items: center; padding: 36px 0; }
+    .card { width: min(620px, 100%); overflow: hidden; background: var(--paper); border: 5px solid var(--gold); border-radius: 4px; box-shadow: 0 24px 40px #0006; color: var(--ink); }
+    .card-head { position: relative; min-height: 88px; padding: 17px 70px; background: var(--ink); color: white; display: flex; align-items: center; justify-content: center; text-align: center; }
+    .game { margin: 0; color: var(--gold-light); font-size: 12px; font-weight: 700; letter-spacing: 1.3px; }
+    .type { margin: 5px 0 0; font-size: 18px; font-weight: 700; }
+    .suit { position: absolute; right: 30px; color: var(--gold); font-size: 34px; line-height: 1; }
+    .card-body { padding: 38px 42px 32px; text-align: center; }
+    .prompt { margin: 0; color: #6d746f; font-size: 11px; font-weight: 700; letter-spacing: 1.4px; }
+    .hand { margin: 12px 0 30px; font-family: Georgia, 'Times New Roman', serif; font-size: clamp(34px, 7vw, 58px); font-weight: 700; line-height: 1.05; }
+    .answer { width: min(280px, 100%); padding: 11px 8px; border: 0; border-bottom: 3px solid #a5aaa6; outline: none; background: transparent; color: var(--ink); text-align: center; font-size: 28px; font-weight: 700; }
+    .answer:focus { border-color: var(--gold); }
+    .answer.correct { border-color: var(--green); background: #ddf4e8; color: #0a653e; }
+    .answer.wrong { border-color: var(--red); background: #fae0dd; color: #a02020; }
+    .hint { min-height: 19px; margin: 13px 0 0; color: #6d746f; font-size: 12px; }
+    .card-foot { display: flex; justify-content: center; gap: 10px; padding-top: 25px; }
+    button { font: inherit; cursor: pointer; }
+    .next { min-width: 158px; border: 0; padding: 13px 18px; background: var(--gold); color: var(--ink); font-size: 13px; font-weight: 800; letter-spacing: .7px; }
+    .next:disabled { opacity: .42; cursor: default; }
+    .dots { display: flex; flex-wrap: wrap; justify-content: center; gap: 7px; padding-bottom: 8px; }
+    .dot { width: 10px; height: 10px; border: 1px solid #c5d6ce; transform: rotate(45deg); }
+    .dot.current { border-color: var(--gold); background: var(--gold); }
+    .dot.correct { border-color: #55d79d; background: #55d79d; }
+    .dot.wrong { border-color: #ef7777; background: #ef7777; }
+    .bottom { display: flex; justify-content: space-between; align-items: center; gap: 18px; color: #c4d5cd; font-size: 12px; }
+    .new-round, .rules-button { border: 1px solid #ffffff88; background: transparent; color: white; padding: 10px 13px; font-size: 12px; font-weight: 700; }
+    dialog { width: min(640px, calc(100% - 32px)); max-height: calc(100vh - 32px); padding: 0; overflow: auto; border: 0; border-radius: 4px; box-shadow: 0 16px 60px #0008; }
+    dialog::backdrop { background: #001a13bb; }
+    .rules { padding: 27px 30px; color: var(--ink); }
+    .rules h2 { margin: 0 0 20px; }
+    .rules p { margin: 7px 0; }
+    .rules .label { margin-top: 20px; color: #96650c; font-size: 12px; font-weight: 800; letter-spacing: 1px; }
+    .close { float: right; border: 0; background: none; font-size: 25px; }
+    @media (max-width: 620px) { .shell { width: min(100% - 24px, 620px); padding-top: 18px; } .topbar { flex-wrap: wrap; justify-content: space-between; gap: 14px; } .brand, .score { position: static; } .brand { font-size: 12px; } .mode-switch { order: 3; } .card-head { padding: 15px 18px; } .card-body { padding: 32px 20px 25px; } .bottom { flex-wrap: wrap; justify-content: center; } }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand"><div class="brand-mark"><span>♠</span></div></div>
+      <div class="mode-switch" aria-label="Quiz mode"><button class="mode active" data-mode="regular">REGULAR</button><button class="mode" data-mode="bonus">BONUSES</button></div>
+      <div class="score"><small>SCORE</small><strong id="score">0 / 25</strong></div>
+    </header>
+    <nav class="category-switch" id="categorySwitch" aria-label="Game category"></nav>
+    <section class="stage" aria-live="polite">
+      <div class="card">
+        <div class="card-head"><div><p class="game" id="game"></p></div><div class="suit">♠</div></div>
+        <div class="card-body"><p class="prompt">PAYOUT COEFFICIENT</p><h1 class="hand" id="hand"></h1><input class="answer" id="answer" aria-label="Payout coefficient" autocomplete="off" inputmode="decimal"><p class="hint" id="hint">Type your answer, then press Enter</p><div class="card-foot"><button class="next" id="next" disabled>NEXT HAND</button></div></div>
+      </div>
+    </section>
+    <div class="dots" id="dots" aria-label="Question progress"></div>
+    <footer class="bottom"><button class="rules-button" id="rulesButton">VIEW PAYOUTS</button><span id="roundInfo">25 mixed hands · no timer</span><button class="new-round" id="newRound">NEW ROUND</button></footer>
+  </main>
+  <dialog id="rules"><div class="rules" id="rulesContent"></div></dialog>
+  <script>
+    const blackjackPayouts = Array.from({ length: 40 }, (_, index) => {
+      const bet = 5 + index * 5;
+      return ['BJ', 'Blackjack Payout', String(bet), String(bet * 1.5)];
+    });
+    const payouts = [
+      ['Ultimate Texas Poker', 'Blind Payout', 'Straight', '1'], ['Ultimate Texas Poker', 'Blind Payout', 'Flush', '1.5'], ['Ultimate Texas Poker', 'Blind Payout', 'Full House', '3'], ['Ultimate Texas Poker', 'Blind Payout', 'Four of a kind', '10'], ['Ultimate Texas Poker', 'Blind Payout', 'Straight Flush', '50'], ['Ultimate Texas Poker', 'Blind Payout', 'Royal Flush', '500'],
+      ['Texas Poker', 'Ante Payout', 'Pair', '1'], ['Texas Poker', 'Ante Payout', 'Two Pair', '1'], ['Texas Poker', 'Ante Payout', 'Three of a kind', '1'], ['Texas Poker', 'Ante Payout', 'Straight', '1'], ['Texas Poker', 'Ante Payout', 'Flush', '2'], ['Texas Poker', 'Ante Payout', 'Full House', '3'], ['Texas Poker', 'Ante Payout', 'Four of a kind', '10'], ['Texas Poker', 'Ante Payout', 'Straight Flush', '20'], ['Texas Poker', 'Ante Payout', 'Royal Flush', '100'],
+      ['Russian Poker', 'Bet Payout', 'Ace King', '1'], ['Russian Poker', 'Bet Payout', 'Pair', '1'], ['Russian Poker', 'Bet Payout', 'Two Pair', '2'], ['Russian Poker', 'Bet Payout', 'Three of a kind', '3'], ['Russian Poker', 'Bet Payout', 'Straight', '4'], ['Russian Poker', 'Bet Payout', 'Flush', '5'], ['Russian Poker', 'Bet Payout', 'Full House', '7'], ['Russian Poker', 'Bet Payout', 'Four of a kind', '20'], ['Russian Poker', 'Bet Payout', 'Straight Flush', '50'], ['Russian Poker', 'Bet Payout', 'Royal Flush', '100'],
+      ...blackjackPayouts
+    ];
+    const bonuses = [
+      ['Blackjack', 'BONUS 20', "Any 10's", '5'], ['Blackjack', 'BONUS 20', "Same-suit 10's", '10'], ['Blackjack', 'BONUS 20', 'Twins', '30'], ['Blackjack', 'BONUS 20', 'Two Kings of clubs', '100'],
+      ['Blackjack', 'E-BONUS', 'Any BJ', '2'], ['Blackjack', 'E-BONUS', 'Same BJ', '10'], ['Blackjack', 'E-BONUS', 'Same King + Queen', '25'], ['Blackjack', 'E-BONUS', 'Any 77', '50'], ['Blackjack', 'E-BONUS', 'Same 77', '100'], ['Blackjack', 'E-BONUS', 'Any 777', '250'], ['Blackjack', 'E-BONUS', 'Same 777', 'jackpot'],
+      ['Texas Poker', 'E-BONUS', 'Two Pair', '2'], ['Texas Poker', 'E-BONUS', 'Three of a kind', '10'], ['Texas Poker', 'E-BONUS', 'Straight', '25'], ['Texas Poker', 'E-BONUS', 'Flush', '50'], ['Texas Poker', 'E-BONUS', 'Full House', '100'], ['Texas Poker', 'E-BONUS', 'Four of a kind', '250'], ['Texas Poker', 'E-BONUS', 'Straight Flush', 'jackpot'], ['Texas Poker', 'E-BONUS', 'Royal Flush', 'jackpot'],
+      ['Texas Poker', 'BONUS AA', 'Pair of Ace', '7'], ['Texas Poker', 'BONUS AA', 'Two Pair', '7'], ['Texas Poker', 'BONUS AA', 'Three of a kind', '7'], ['Texas Poker', 'BONUS AA', 'Straight', '7'], ['Texas Poker', 'BONUS AA', 'Flush', '20'], ['Texas Poker', 'BONUS AA', 'Full House', '30'], ['Texas Poker', 'BONUS AA', 'Four of a kind', '40'], ['Texas Poker', 'BONUS AA', 'Straight Flush', '50'], ['Texas Poker', 'BONUS AA', 'Royal Flush', '100'],
+      ['Ultimate Texas Poker', 'E-BONUS', 'Two Pair', '2'], ['Ultimate Texas Poker', 'E-BONUS', 'Three of a kind', '10'], ['Ultimate Texas Poker', 'E-BONUS', 'Straight', '25'], ['Ultimate Texas Poker', 'E-BONUS', 'Flush', '50'], ['Ultimate Texas Poker', 'E-BONUS', 'Full House', '100'], ['Ultimate Texas Poker', 'E-BONUS', 'Four of a kind', '250'], ['Ultimate Texas Poker', 'E-BONUS', 'Straight Flush', 'jackpot'], ['Ultimate Texas Poker', 'E-BONUS', 'Royal Flush', 'jackpot'],
+      ['Ultimate Texas Poker', 'TRIPS', 'Three of a kind', '3'], ['Ultimate Texas Poker', 'TRIPS', 'Straight', '4'], ['Ultimate Texas Poker', 'TRIPS', 'Flush', '7'], ['Ultimate Texas Poker', 'TRIPS', 'Full House', '8'], ['Ultimate Texas Poker', 'TRIPS', '4 of a kind', '30'], ['Ultimate Texas Poker', 'TRIPS', 'Straight Flush', '40'], ['Ultimate Texas Poker', 'TRIPS', 'Royal Flush', '50'],
+      ['Russian Poker', 'E-BONUS', 'Two Pair', '2'], ['Russian Poker', 'E-BONUS', 'Three of a kind', '10'], ['Russian Poker', 'E-BONUS', 'Straight', '25'], ['Russian Poker', 'E-BONUS', 'Flush', '50'], ['Russian Poker', 'E-BONUS', 'Full House', '100'], ['Russian Poker', 'E-BONUS', 'Four of a kind', '250'], ['Russian Poker', 'E-BONUS', 'Straight Flush', 'jackpot'], ['Russian Poker', 'E-BONUS', 'Royal Flush', 'jackpot'],
+      ['Russian Poker', 'TR-BONUS (5)', 'Straight', '25'], ['Russian Poker', 'TR-BONUS (5)', 'Flush', '50'], ['Russian Poker', 'TR-BONUS (5)', 'Full House', '100'], ['Russian Poker', 'TR-BONUS (5)', '4 of a kind', '300'], ['Russian Poker', 'TR-BONUS (5)', 'Straight Flush', '500'], ['Russian Poker', 'TR-BONUS (5)', 'Royal Flush', '1000'],
+      ['Russian Poker', 'TR-BONUS (6)', 'Straight', '7'], ['Russian Poker', 'TR-BONUS (6)', 'Flush', '15'], ['Russian Poker', 'TR-BONUS (6)', 'Full House', '30'], ['Russian Poker', 'TR-BONUS (6)', '4 of a kind', '100'], ['Russian Poker', 'TR-BONUS (6)', 'Straight Flush', '150'], ['Russian Poker', 'TR-BONUS (6)', 'Royal Flush', '300']
+    ];
+    const game = document.querySelector('#game'), hand = document.querySelector('#hand'), answer = document.querySelector('#answer'), hint = document.querySelector('#hint'), score = document.querySelector('#score'), next = document.querySelector('#next'), dots = document.querySelector('#dots'), roundInfo = document.querySelector('#roundInfo'), rulesContent = document.querySelector('#rulesContent'), categorySwitch = document.querySelector('#categorySwitch');
+    let mode = 'regular', category = 'mixed', deck = [], index = 0, correct = 0, checked = false, results = [];
+    const shuffled = list => [...list].sort(() => Math.random() - .5);
+    const normalize = value => value.trim().toLowerCase().replace(/[$\s]/g, '').replace(',', '.').replace(/:1$/, '');
+    function categoriesForMode() { return mode === 'regular' ? [['mixed', 'MIXED'], ['Ultimate Texas Poker', 'ULTIMATE TEXAS'], ['Texas Poker', 'TEXAS'], ['Russian Poker', 'RUSSIAN'], ['BJ', 'BJ']] : [['mixed', 'MIXED'], ['Blackjack', 'BLACKJACK'], ['Ultimate Texas Poker', 'ULTIMATE TEXAS'], ['Texas Poker', 'TEXAS'], ['Russian Poker', 'RUSSIAN']]; }
+    function currentPool() { const source = mode === 'bonus' ? bonuses : payouts; if (category !== 'mixed') return source.filter(([gameName]) => gameName === category); return mode === 'regular' ? source.filter(([gameName]) => gameName !== 'BJ') : source; }
+    function renderCategories() { categorySwitch.replaceChildren(...categoriesForMode().map(([value, label]) => { const button = document.createElement('button'); button.className = `category ${value === category ? 'active' : ''}`; button.textContent = label; button.addEventListener('click', () => { category = value; newRound(); }); return button; })); }
+    function renderDots() { dots.replaceChildren(...deck.map((_, i) => { const dot = document.createElement('span'); dot.className = `dot ${i === index ? 'current' : ''} ${results[i] || ''}`; return dot; })); }
+    function render() { const [gameName, category, handName] = deck[index]; game.textContent = gameName.toUpperCase(); hand.textContent = mode === 'bonus' ? `${category} · ${handName}` : handName; answer.value = ''; answer.className = 'answer'; hint.textContent = 'Type your answer, then press Enter'; next.disabled = false; next.textContent = 'CHECK ANSWER'; checked = false; score.textContent = `${correct} / ${deck.length}`; renderDots(); answer.focus(); }
+    function answerText(value, gameName) { if (gameName === 'BJ') return value; return value === 'jackpot' ? 'Jackpot' : `${value}:1`; }
+    function checkAnswer() { if (checked || !answer.value.trim()) return; checked = true; const expected = deck[index][3]; const entered = normalize(answer.value); const compactBlackjackPayout = deck[index][0] === 'BJ' && expected.endsWith('.5') && Number(entered) === Number(expected) * 10; const ok = entered === normalize(expected) || compactBlackjackPayout; answer.classList.add(ok ? 'correct' : 'wrong'); results[index] = ok ? 'correct' : 'wrong'; if (ok) { correct += 1; hint.textContent = 'Correct'; } else { hint.textContent = `Correct answer: ${answerText(expected, deck[index][0])}`; } score.textContent = `${correct} / ${deck.length}`; next.textContent = 'NEXT HAND'; renderDots(); }
+    function nextHand() { if (!checked) return; if (index < deck.length - 1) { index += 1; render(); } else { hand.textContent = 'Round complete'; game.textContent = `FINAL SCORE · ${correct} OF ${deck.length}`; answer.style.display = 'none'; hint.textContent = 'Start a new round to reshuffle all payouts.'; next.disabled = true; renderDots(); } }
+    function renderRules() { const groups = new Map(); currentPool().forEach(([gameName, payoutCategory, handName, value]) => { const key = `${gameName} · ${payoutCategory}`; if (!groups.has(key)) groups.set(key, []); groups.get(key).push([handName, value, gameName]); }); rulesContent.replaceChildren(); const close = document.createElement('button'); close.className = 'close'; close.setAttribute('aria-label', 'Close'); close.textContent = '×'; close.addEventListener('click', () => document.querySelector('#rules').close()); const title = document.createElement('h2'); title.textContent = mode === 'bonus' ? 'Bonus Payouts' : 'Regular Payouts'; rulesContent.append(close, title); groups.forEach((entries, label) => { const heading = document.createElement('p'); heading.className = 'label'; heading.textContent = label; rulesContent.append(heading); entries.forEach(([handName, value, gameName]) => { const line = document.createElement('p'); line.textContent = `${handName}: ${answerText(value, gameName)}`; rulesContent.append(line); }); }); }
+    function newRound() { deck = shuffled(currentPool()); index = 0; correct = 0; results = []; answer.style.display = ''; roundInfo.textContent = `${deck.length} ${category === 'mixed' ? 'mixed' : category.toLowerCase()} ${mode === 'bonus' ? 'bonus' : 'regular'} hands · no timer`; renderCategories(); renderRules(); render(); }
+    answer.addEventListener('keydown', event => {
+      if (event.key !== 'Enter') return;
+      event.preventDefault();
+      if (checked) nextHand(); else checkAnswer();
+    });
+    next.addEventListener('click', () => { if (checked) nextHand(); else checkAnswer(); }); document.querySelector('#newRound').addEventListener('click', newRound);
+    document.querySelectorAll('.mode').forEach(button => button.addEventListener('click', () => { mode = button.dataset.mode; category = 'mixed'; document.querySelectorAll('.mode').forEach(item => item.classList.toggle('active', item === button)); newRound(); }));
+    const dialog = document.querySelector('#rules'); document.querySelector('#rulesButton').addEventListener('click', () => dialog.showModal());
+    newRound();
+  </script>
+</body>
+</html>

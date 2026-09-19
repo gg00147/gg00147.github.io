@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Payouts &amp; Bonuses</title>
+  <link rel="icon" type="image/png" href="favicon.png?v=3">
   <style>
     :root { --felt: #063c32; --felt-dark: #022820; --gold: #f4bc52; --gold-light: #ffe1a0; --ink: #111915; --paper: #fffdf8; --red: #c84444; --green: #229464; }
     * { box-sizing: border-box; }
@@ -98,6 +99,10 @@
       ['Russian Poker', 'TR-BONUS (5)', 'Straight', '25'], ['Russian Poker', 'TR-BONUS (5)', 'Flush', '50'], ['Russian Poker', 'TR-BONUS (5)', 'Full House', '100'], ['Russian Poker', 'TR-BONUS (5)', '4 of a kind', '300'], ['Russian Poker', 'TR-BONUS (5)', 'Straight Flush', '500'], ['Russian Poker', 'TR-BONUS (5)', 'Royal Flush', '1000'],
       ['Russian Poker', 'TR-BONUS (6)', 'Straight', '7'], ['Russian Poker', 'TR-BONUS (6)', 'Flush', '15'], ['Russian Poker', 'TR-BONUS (6)', 'Full House', '30'], ['Russian Poker', 'TR-BONUS (6)', '4 of a kind', '100'], ['Russian Poker', 'TR-BONUS (6)', 'Straight Flush', '150'], ['Russian Poker', 'TR-BONUS (6)', 'Royal Flush', '300']
     ];
+    const mixedBonuses = [
+      ...bonuses.filter(([gameName, payoutCategory]) => !(payoutCategory === 'E-BONUS' && ['Texas Poker', 'Ultimate Texas Poker', 'Russian Poker'].includes(gameName))),
+      ...bonuses.filter(([gameName, payoutCategory]) => gameName === 'Texas Poker' && payoutCategory === 'E-BONUS').map(([, , handName, value]) => ['5 Card Poker', 'E-BONUS', handName, value])
+    ];
     const rouletteWheel = [0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26];
     const rouletteQuestions = rouletteWheel.map((number, index) => ['Roulette', 'Wheel Order', String(number), [...rouletteWheel.slice(index + 1), ...rouletteWheel.slice(0, index + 1)].join(' ')]);
     const game = document.querySelector('#game'), hand = document.querySelector('#hand'), answer = document.querySelector('#answer'), hint = document.querySelector('#hint'), score = document.querySelector('#score'), next = document.querySelector('#next'), dots = document.querySelector('#dots'), roundInfo = document.querySelector('#roundInfo'), rulesContent = document.querySelector('#rulesContent'), categorySwitch = document.querySelector('#categorySwitch'), prompt = document.querySelector('#prompt'), rulesButton = document.querySelector('#rulesButton');
@@ -106,7 +111,7 @@
     const normalize = value => value.trim().toLowerCase().replace(/[$\s]/g, '').replace(',', '.').replace(/:1$/, '');
     const normalizeWheelOrder = value => value.trim().split(/[\s,]+/).filter(Boolean).join(' ');
     function categoriesForMode() { return mode === 'regular' ? [['mixed', 'MIXED'], ['Ultimate Texas Poker', 'ULTIMATE TEXAS'], ['Texas Poker', 'TEXAS'], ['Russian Poker', 'RUSSIAN'], ['BJ', 'BJ']] : [['mixed', 'MIXED'], ['Blackjack', 'BLACKJACK'], ['Ultimate Texas Poker', 'ULTIMATE TEXAS'], ['Texas Poker', 'TEXAS'], ['Russian Poker', 'RUSSIAN']]; }
-    function currentPool() { if (mode === 'roulette') return rouletteQuestions; const source = mode === 'bonus' ? bonuses : payouts; if (category !== 'mixed') return source.filter(([gameName]) => gameName === category); return mode === 'regular' ? source.filter(([gameName]) => gameName !== 'BJ') : source; }
+    function currentPool() { if (mode === 'roulette') return rouletteQuestions; const source = mode === 'bonus' ? bonuses : payouts; if (category !== 'mixed') return source.filter(([gameName]) => gameName === category); return mode === 'regular' ? source.filter(([gameName]) => gameName !== 'BJ') : mixedBonuses; }
     function renderCategories() { categorySwitch.hidden = mode === 'roulette'; if (mode === 'roulette') return; categorySwitch.replaceChildren(...categoriesForMode().map(([value, label]) => { const button = document.createElement('button'); button.className = `category ${value === category ? 'active' : ''}`; button.textContent = label; button.addEventListener('click', () => { category = value; newRound(); }); return button; })); }
     function renderDots() { dots.replaceChildren(...deck.map((_, i) => { const dot = document.createElement('span'); dot.className = `dot ${i === index ? 'current' : ''} ${results[i] || ''}`; return dot; })); }
     function render() { const [gameName, category, handName] = deck[index]; const isRoulette = mode === 'roulette'; game.textContent = gameName.toUpperCase(); hand.textContent = mode === 'bonus' ? `${category} · ${handName}` : handName; prompt.textContent = isRoulette ? 'TYPE THE WHEEL ORDER UNTIL YOU RETURN TO THIS NUMBER' : 'PAYOUT COEFFICIENT'; answer.value = ''; answer.className = `answer${isRoulette ? ' roulette-answer' : ''}`; answer.rows = isRoulette ? 3 : 1; answer.inputMode = isRoulette ? 'text' : 'decimal'; answer.setAttribute('aria-label', isRoulette ? 'Roulette wheel order' : 'Payout coefficient'); hint.textContent = isRoulette ? 'Use spaces or commas, then press Enter' : 'Type your answer, then press Enter'; next.disabled = false; next.textContent = 'CHECK ANSWER'; checked = false; score.textContent = `${correct} / ${deck.length}`; renderDots(); answer.focus(); }
